@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+       <div id="container" style="height: 100%"></div>
+       <script type="text/javascript" src="javascripts/echarts-all-3.js"></script>
+        <script type="text/javascript" src="javascripts/bmap.min.js"></script>
+       <script type="text/javascript" src="javascripts/jquery.js"></script>
+       <script type="text/javascript">
+function getJsonData(apiUrl) {
+  // strUrl is whatever URL you need to call
+  var strUrl = apiUrl, strReturn = "";
+    //console.log(strUrl)
+  jQuery.ajax({
+    url: strUrl,
+    success: function(response) {
+      strReturn = response;
+    },
+    async:false
+  });
+
+  return strReturn;
+}
+
+/*function consoliateArray(datain,consolidateInterval){
+    var result = []
+    for(var i =0;i<(datain.length)/(consolidateInterval/60);i++){
+        for(var j=0;j<(consolidateInterval/60);j++){
+            result[i][] += 
+        }
+    }
+    return result
+}
+*/
+function splitArray(datain,column){
+    var result = []
+    for (var i in datain){
+        result[i] = datain[i][column]
+    }
+    return result
+}
+function tranformDayArray(datain){
+  var result = []
+  for(var i in datain){
+    //console.log(datain[i])
+    var dateIn = new Date(datain[i]*1000);
+    var dateString = [dateIn.getFullYear(), dateIn.getMonth() + 1, dateIn.getDate()].join('/') + '|' + [dateIn.getHours(),dateIn.getMinutes()].join(':')
+    result[i] = dateString
+  } 
+  return result
+}
+
+var consolidateInterval = 1200;
+var apiUrl = 'http://158.108.183.21:3000/dnsApi/timeseries/1489597200/1489683600?restype=countIpv6'
+var datain = getJsonData(apiUrl);
+var data = splitArray(datain,2) 
+var dataXaxis = splitArray(datain,1) 
+
+var dataXDayaxis = tranformDayArray(dataXaxis)
+
+//console.log(data)
+//console.log(dataXaxis)
+
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+
+option = {
+    title: {
+        text: 'test'
+    },
+    tooltip: {
+        trigger: 'axis',
+    },
+    legend: {
+        data:['邮件营销']
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+    dataZoom: [{
+        type: 'inside',
+        start: 20,
+        end: 50
+    }, {
+        start: 0,
+        end: 10,
+        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+        handleSize: '80%',
+        handleStyle: {
+            color: '#fff',
+            shadowBlur: 3,
+            shadowColor: 'rgba(0, 0, 0, 0.6)',
+            shadowOffsetX: 2,
+            shadowOffsetY: 2
+        }
+    }],
+    toolbox: {
+        feature: {
+            saveAsImage: {}
+        }
+    },
+    xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: dataXDayaxis
+    },
+    yAxis: {
+        type: 'value'
+    },
+    series: [
+        {
+            name:'countDns',
+            type:'line',
+            itemStyle: {
+                normal: {
+                    color: 'rgb(255, 70, 131)'
+                }
+            },
+            areaStyle: {
+                normal: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                        offset: 0,
+                        color: 'rgb(255, 158, 68)'
+                    }, {
+                        offset: 1,
+                        color: 'rgb(255, 70, 131)'
+                    }])
+                }
+            },
+            data: data
+        }
+    ]
+};
+;
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+   </body>
+</html>
